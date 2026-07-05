@@ -37,14 +37,63 @@ route("POST", "/api/echo", async ({ json }) => {
   return [{ youSaid: body.message }, 201];
 });
 
-// Example — proxy a third-party API server-side (no browser CORS, key hidden in env):
-// route("GET", "/api/quotes", async ({ env }) => {
-//   const r = await fetch("https://api.example.com/v1/quotes", {
-//     headers: { authorization: `Bearer ${env.EXAMPLE_API_KEY}` },
-//   });
-//   if (!r.ok) throw new HttpError(502, "upstream failed");
-//   return r.json();
-// });
+// ---- Solana DeFi Proxy Routes ----
+
+// Validate a Solana mint address (base58, 32-44 chars)
+const MINT_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+
+// Jupiter Price API proxy (avoids CORS)
+route("GET", "/api/prices", async ({ query }) => {
+  const ids = (query.ids || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!ids.length) throw new HttpError(400, "ids param required");
+  if (ids.length > 100) throw new HttpError(400, "max 100 ids");
+  for (const id of ids) {
+    if (!MINT_RE.test(id)) throw new HttpError(400, `invalid mint address: ${id.slice(0, 8)}…`);
+  }
+  const r = await fetch(`https://api.jup.ag/price/v2?ids=${encodeURIComponent(ids.join(","))}`);
+  if (!r.ok) throw new HttpError(502, "Jupiter price API failed");
+  return r.json();
+});
+
+// Jupiter Quote API proxy
+route("GET", "/api/quote", async ({ query }) => {
+  const ALLOWED = new Set(["inputMint", "outputMint", "amount", "slippageBps", "onlyDirectRoutes", "asLegacyTransaction"]);
+  const filtered = {};
+  for (const [k, v] of Object.entries(query)) {
+    if (!ALLOWED.has(k)) continue;
+    filtered[k] = v;
+  }
+  if (!filtered.inputMint || !filtered.outputMint || !filtered.amount) {
+    throw new HttpError(400, "inputMint, outputMint, and amount are required");
+  }
+  if (!MINT_RE.test(filtered.inputMint) || !MINT_RE.test(filtered.outputMint)) {
+    throw new HttpError(400, "invalid mint address");
+  }
+  const params = new URLSearchParams(filtered);
+  const r = await fetch(`https://quote-api.jup.ag/v6/quote?${params.toString()}`);
+  if (!r.ok) throw new HttpError(502, "Jupiter quote failed");
+  return r.json();
+});
+
+// Jupiter Swap API proxy
+route("POST", "/api/swap", async ({ json }) => {
+  const body = await json();
+  if (!body || typeof body !== "object") throw new HttpError(400, "JSON body required");
+  if (!body.quoteResponse || !body.userPublicKey) {
+    throw new HttpError(400, "quoteResponse and userPublicKey required");
+  }
+  if (!MINT_RE.test(body.userPublicKey)) throw new HttpError(400, "invalid userPublicKey");
+  const MAX_BODY = 8192;
+  const serialized = JSON.stringify(body);
+  if (serialized.length > MAX_BODY) throw new HttpError(400, "payload too large");
+  const r = await fetch("https://quote-api.jup.ag/v6/swap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: serialized,
+  });
+  if (!r.ok) throw new HttpError(502, "Jupiter swap failed");
+  return r.json();
+});
 
 // Example — read/write the project D1 (when bound). See livo://skill/runtime for Store.
 // route("GET", "/api/items", async ({ env }) => {
