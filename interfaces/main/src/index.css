@@ -20,8 +20,12 @@
   }
 
   body {
-    @apply bg-[var(--bg-primary)] text-[var(--text-primary)] antialiased m-0;
+    margin: 0;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   * {
@@ -32,15 +36,27 @@
 
 @layer components {
   .glass-card {
-    @apply bg-[var(--bg-card)] border border-[var(--border-color)] rounded-2xl;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-200 hover:bg-[var(--bg-card-hover)] hover:border-[var(--accent-purple)]/30;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    transition: all 0.2s;
+  }
+  .glass-card-hover:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(139, 92, 246, 0.3);
   }
 
   .gradient-text {
-    @apply bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-blue)] bg-clip-text text-transparent;
+    background: linear-gradient(to right, var(--accent-purple), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .glow-purple {
@@ -48,46 +64,92 @@
   }
 
   .btn-primary {
-    @apply bg-gradient-to-r from-[var(--accent-purple)] to-[var(--accent-blue)] text-white font-semibold
-           py-3 px-6 rounded-xl transition-all duration-200 hover:opacity-90 hover:shadow-lg
-           disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98];
+    background: linear-gradient(to right, var(--accent-purple), var(--accent-blue));
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
   }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary:active { transform: scale(0.98); }
 
   .btn-secondary {
-    @apply bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-primary)]
-           py-2.5 px-5 rounded-xl transition-all duration-200 hover:bg-[var(--bg-card-hover)]
-           hover:border-[var(--accent-purple)]/30;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .btn-secondary:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(139, 92, 246, 0.3);
   }
 
   .input-field {
-    @apply w-full bg-[var(--bg-primary)] border border-[var(--border-color)] rounded-xl
-           px-4 py-3 text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]
-           focus:outline-none focus:border-[var(--accent-purple)]/50 focus:ring-1
-           focus:ring-[var(--accent-purple)]/20 transition-all;
+    width: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .input-field::placeholder { color: var(--text-secondary); }
+  .input-field:focus {
+    border-color: rgba(139, 92, 246, 0.5);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
   }
 
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
   }
 
   .badge-green {
-    @apply badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20;
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.2);
   }
 
   .badge-red {
-    @apply badge bg-red-500/10 text-red-400 border border-red-500/20;
+    background: rgba(239, 68, 68, 0.1);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.2);
   }
 
   .badge-amber {
-    @apply badge bg-amber-500/10 text-amber-400 border border-amber-500/20;
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.2);
   }
 
   .badge-blue {
-    @apply badge bg-blue-500/10 text-blue-400 border border-blue-500/20;
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
   }
 
   .module-grid {
-    @apply grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    .module-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (min-width: 1280px) {
+    .module-grid { grid-template-columns: repeat(3, 1fr); }
   }
 }
 
