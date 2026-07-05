@@ -1,0 +1,13 @@
+# Deployable manifest. Each entry: { name, type, root, runtime, subdomain }.
+# A push rebuilds only the deployables whose roots changed. The create_* / sync_*
+# tools append entries here as you add keepers, bots, indexers and servers.
+deployables:
+  - name: sol-defi-super-app-web
+    type: web
+    root: interfaces/main
+    runtime: workers
+    subdomain: sol-defi-super-app
+# Your main site is interfaces/main/ (the apex sol-defi-super-app.livo.build). Add MORE sites by
+# dropping a folder under interfaces/<name>/ — it auto-deploys to <name>--sol-defi-super-app.livo.build.
+# (Legacy projects' singular interface/ still builds.) Or declare any folder explicitly here:
+#   - { name: app, type: web, root: interfaces/app, subdomain: app }   # → app--sol-defi-super-app.livo.build

@@ -1,0 +1,6 @@
+# Livo API config — a stateless Worker served at {slug}.livo.build/api/*.
+# Deploy/redeploy with deploy_api. Secrets set via set_secret are injected as env.*.
+name: api
+entry: index.js
+runtime: workers
+language: typescript

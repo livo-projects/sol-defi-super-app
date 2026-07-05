@@ -1,0 +1,21 @@
+[profile.default]
+src = "src"
+out = "out"
+# dependencies/ = soldeer deps (add_library); lib/ = always-installed forge-std.
+libs = ["dependencies", "lib"]
+test = "test"
+script = "script"
+solc = "0.8.24"
+optimizer = true
+optimizer_runs = 200
+
+[soldeer]
+# Livo commits canonical remappings.txt (add_library) — soldeer's auto-generated,
+# version-suffixed remappings don't match standard imports, so don't regenerate.
+remappings_generate = false
+
+[lint]
+# Don't run the linter on every `forge build`/`forge test` — the style nags
+# (block-timestamp, unsafe-typecast, …) are advisory and just bury real output
+# in long deploy logs. Run `forge lint` explicitly when you want them.
+lint_on_build = false

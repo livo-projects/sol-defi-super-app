@@ -1,0 +1,8 @@
+{
+  "name": "sol-defi-super-app",
+  "private": true,
+  "workspaces": [
+    "interfaces/main",
+    "indexers/*"
+  ]
+}
