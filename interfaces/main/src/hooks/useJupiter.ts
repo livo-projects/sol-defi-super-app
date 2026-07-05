@@ -3,9 +3,8 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { VersionedTransaction } from '@solana/web3.js';
 import type { JupiterQuote, Token, RouteStep } from '../types';
 
-// Use same-origin proxy to avoid CORS
-const API_BASE = '/api';
-const TOKEN_LIST_URL = 'https://token.jup.ag/strict';
+const JUPITER_QUOTE_API = 'https://quote-api.jup.ag/v6';
+const JUPITER_PRICE_API = 'https://api.jup.ag/price/v2';
 
 // Popular Solana tokens for default display
 export const POPULAR_TOKENS: Token[] = [
@@ -52,7 +51,7 @@ export function useJupiter() {
           asLegacyTransaction: 'false',
         });
 
-        const res = await fetch(`${API_BASE}/quote?${params}`, {
+        const res = await fetch(`${JUPITER_QUOTE_API}/quote?${params}`, {
           signal: abortRef.current.signal,
         });
 
@@ -87,7 +86,7 @@ export function useJupiter() {
     setError(null);
 
     try {
-      const swapRes = await fetch(`${API_BASE}/swap`, {
+      const swapRes = await fetch(`${JUPITER_QUOTE_API}/swap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -149,7 +148,7 @@ export function useTokenList() {
   const loadTokens = useCallback(async () => {
     if (loaded) return;
     try {
-      const res = await fetch(TOKEN_LIST_URL);
+      const res = await fetch('https://token.jup.ag/strict');
       if (res.ok) {
         const data: Token[] = await res.json();
         const map = new Map<string, Token>();
@@ -176,7 +175,7 @@ export function usePriceFeed() {
     if (cached && Date.now() - cached.ts < 30000) return cached.price;
 
     try {
-      const res = await fetch(`${API_BASE}/prices?ids=${mint}`);
+      const res = await fetch(`${JUPITER_PRICE_API}?ids=${mint}`);
       if (!res.ok) return null;
       const data = await res.json();
       const price = data.data?.[mint]?.price;
@@ -193,7 +192,7 @@ export function usePriceFeed() {
   const getPrices = useCallback(async (mints: string[]): Promise<Map<string, number>> => {
     const prices = new Map<string, number>();
     try {
-      const res = await fetch(`${API_BASE}/prices?ids=${mints.join(',')}`);
+      const res = await fetch(`${JUPITER_PRICE_API}?ids=${mints.join(',')}`);
       if (!res.ok) return prices;
       const data = await res.json();
       for (const mint of mints) {
