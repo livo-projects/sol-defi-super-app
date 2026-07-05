@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { Bridge, ArrowRight, Clock, DollarSign, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowLeftRight, ArrowRight, Clock, DollarSign, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { Card } from './ui/Card';
 
 interface BridgeRoute {
@@ -120,7 +120,7 @@ export function BridgeModule() {
   return (
     <Card
       title="Bridge"
-      icon={<Bridge size={18} />}
+      icon={<ArrowLeftRight size={18} />}
       description="Cross-chain transfers from Solana"
       badge={<span className="badge-blue">Wormhole · Allbridge</span>}
     >
