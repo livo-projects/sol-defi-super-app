@@ -3,7 +3,8 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { VersionedTransaction } from '@solana/web3.js';
 import type { JupiterQuote, Token, RouteStep } from '../types';
 
-const JUPITER_API = 'https://quote-api.jup.ag/v6';
+// Use same-origin proxy to avoid CORS
+const API_BASE = '/api';
 const TOKEN_LIST_URL = 'https://token.jup.ag/strict';
 
 // Popular Solana tokens for default display
@@ -29,7 +30,6 @@ export function useJupiter() {
 
   const fetchQuote = useCallback(
     async (inputMint: string, outputMint: string, amount: number, slippageBps = 50) => {
-      // Cancel previous in-flight request
       if (abortRef.current) abortRef.current.abort();
       abortRef.current = new AbortController();
 
@@ -52,7 +52,7 @@ export function useJupiter() {
           asLegacyTransaction: 'false',
         });
 
-        const res = await fetch(`${JUPITER_API}/quote?${params}`, {
+        const res = await fetch(`${API_BASE}/quote?${params}`, {
           signal: abortRef.current.signal,
         });
 
@@ -87,8 +87,7 @@ export function useJupiter() {
     setError(null);
 
     try {
-      // Get swap transaction from Jupiter
-      const swapRes = await fetch(`${JUPITER_API}/swap`, {
+      const swapRes = await fetch(`${API_BASE}/swap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,7 +106,6 @@ export function useJupiter() {
 
       const { swapTransaction } = await swapRes.json();
 
-      // Deserialize, sign, and send
       const txBuf = Buffer.from(swapTransaction, 'base64');
       const tx = VersionedTransaction.deserialize(txBuf);
       const signed = await signTransaction(tx);
@@ -118,7 +116,6 @@ export function useJupiter() {
         maxRetries: 3,
       });
 
-      // Confirm
       const latest = await connection.getLatestBlockhash('confirmed');
       await connection.confirmTransaction(
         { signature: txid, blockhash: latest.blockhash, lastValidBlockHeight: latest.lastValidBlockHeight },
@@ -155,7 +152,6 @@ export function useTokenList() {
       const res = await fetch(TOKEN_LIST_URL);
       if (res.ok) {
         const data: Token[] = await res.json();
-        // Merge with popular tokens, deduplicate by address
         const map = new Map<string, Token>();
         for (const t of POPULAR_TOKENS) map.set(t.address, t);
         for (const t of data) {
@@ -165,7 +161,7 @@ export function useTokenList() {
         setLoaded(true);
       }
     } catch {
-      // Keep using popular tokens as fallback
+      // Keep popular tokens as fallback
     }
   }, [loaded]);
 
@@ -180,7 +176,7 @@ export function usePriceFeed() {
     if (cached && Date.now() - cached.ts < 30000) return cached.price;
 
     try {
-      const res = await fetch(`https://api.jup.ag/price/v2?ids=${mint}`);
+      const res = await fetch(`${API_BASE}/prices?ids=${mint}`);
       if (!res.ok) return null;
       const data = await res.json();
       const price = data.data?.[mint]?.price;
@@ -197,7 +193,7 @@ export function usePriceFeed() {
   const getPrices = useCallback(async (mints: string[]): Promise<Map<string, number>> => {
     const prices = new Map<string, number>();
     try {
-      const res = await fetch(`https://api.jup.ag/price/v2?ids=${mints.join(',')}`);
+      const res = await fetch(`${API_BASE}/prices?ids=${mints.join(',')}`);
       if (!res.ok) return prices;
       const data = await res.json();
       for (const mint of mints) {

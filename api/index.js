@@ -37,14 +37,42 @@ route("POST", "/api/echo", async ({ json }) => {
   return [{ youSaid: body.message }, 201];
 });
 
-// Example — proxy a third-party API server-side (no browser CORS, key hidden in env):
-// route("GET", "/api/quotes", async ({ env }) => {
-//   const r = await fetch("https://api.example.com/v1/quotes", {
-//     headers: { authorization: `Bearer ${env.EXAMPLE_API_KEY}` },
-//   });
-//   if (!r.ok) throw new HttpError(502, "upstream failed");
-//   return r.json();
-// });
+// ---- Solana DeFi Proxy Routes ----
+
+// Jupiter Price API proxy (avoids CORS)
+route("GET", "/api/prices", async ({ query }) => {
+  const ids = query.ids || "";
+  if (!ids) throw new HttpError(400, "ids param required");
+  const r = await fetch(`https://api.jup.ag/price/v2?ids=${encodeURIComponent(ids)}`);
+  if (!r.ok) throw new HttpError(502, "Jupiter price API failed");
+  return r.json();
+});
+
+// Jupiter Quote API proxy
+route("GET", "/api/quote", async ({ query }) => {
+  const params = new URLSearchParams(query);
+  const r = await fetch(`https://quote-api.jup.ag/v6/quote?${params.toString()}`);
+  if (!r.ok) {
+    const body = await r.text();
+    throw new HttpError(502, body || "Jupiter quote failed");
+  }
+  return r.json();
+});
+
+// Jupiter Swap API proxy
+route("POST", "/api/swap", async ({ json }) => {
+  const body = await json();
+  const r = await fetch("https://quote-api.jup.ag/v6/swap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) {
+    const errBody = await r.text();
+    throw new HttpError(502, errBody || "Jupiter swap failed");
+  }
+  return r.json();
+});
 
 // Example — read/write the project D1 (when bound). See livo://skill/runtime for Store.
 // route("GET", "/api/items", async ({ env }) => {
