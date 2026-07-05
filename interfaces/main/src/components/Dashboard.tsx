@@ -57,7 +57,7 @@ export function Dashboard() {
         />
         <StatCard
           label="Lent / Borrowed"
-          value={`$${portfolio.lentValue.toLocale()} / $${portfolio.borrowedValue.toLocale()}`}
+          value={`$${portfolio.lentValue.toLocaleString()} / $${portfolio.borrowedValue.toLocaleString()}`}
           icon={<HandCoins size={18} />}
         />
       </div>
